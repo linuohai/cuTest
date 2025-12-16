@@ -128,7 +128,7 @@ if __name__ == "__main__":
     ap.add_argument("--step", type=int, default=131, help="ring step (must be coprime with nodes; odd works for pow2 nodes)")
     ap.add_argument("--warmup", type=int, default=1)
     ap.add_argument("--rounds", type=int, default=128)
-    ap.add_argument("--repeats", type=int, default=20)
+    ap.add_argument("--repeats", type=int, default=10)
     ap.add_argument("--max_mem_frac", type=float, default=0.9,
                     help="fraction of total GPU mem used as safety cap; set 0 to disable")
     ap.add_argument("--max_bytes", type=str, default=None,
