@@ -18,6 +18,10 @@ __device__ __forceinline__ uint32_t asm_ld_cg_u32(const uint32_t* p) {
   return v;
 }
 
+__device__ __forceinline__ void asm_st_default_u32(uint32_t* p, uint32_t v) {
+  asm volatile("st.global.u32 [%0], %1;" :: "l"(p), "r"(v) : "memory");
+}
+
 __device__ __forceinline__ void asm_st_wb_u32(uint32_t* p, uint32_t v) {
   asm volatile("st.global.wb.u32 [%0], %1;" :: "l"(p), "r"(v) : "memory");
 }
@@ -61,4 +65,3 @@ __device__ __forceinline__ void delay_cycles(uint64_t cycles) {
   while ((clock64() - start) < cycles) {
   }
 }
-

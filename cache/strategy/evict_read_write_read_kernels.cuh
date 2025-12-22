@@ -23,9 +23,11 @@ __device__ __forceinline__ uint32_t evict_read_write_read_body(uint32_t* buf,
 #define DEFINE_EVICT_RWR_KERNEL(kernel_name, store_op)                      \
   extern "C" __global__ void kernel_name(uint32_t* buf, int iters,          \
                                         int stride_words, uint32_t* out) { \
+    __shared__ volatile uint32_t sink;                                     \
     if (blockIdx.x == 0 && threadIdx.x == 0) {                              \
-      out[0] = evict_read_write_read_body<store_op>(buf, iters,             \
-                                                    stride_words);         \
+      (void)out;                                                           \
+      sink = evict_read_write_read_body<store_op>(buf, iters,               \
+                                                  stride_words);           \
     }                                                                      \
   }
 
@@ -36,4 +38,3 @@ DEFINE_EVICT_RWR_KERNEL(k_evict_cg, StoreOp::kCg)
 DEFINE_EVICT_RWR_KERNEL(k_evict_cs, StoreOp::kCs)
 
 #undef DEFINE_EVICT_RWR_KERNEL
-

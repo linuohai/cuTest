@@ -7,7 +7,9 @@
 #include <string>
 
 #include "strategy_types.h"
+#include "alloc_cross_thread_kernels.cuh"
 #include "alloc_write_read_kernels.cuh"
+#include "store_only_kernels.cuh"
 #include "evict_read_write_read_kernels.cuh"
 #include "wb_wt_visibility_kernels.cuh"
 
@@ -25,6 +27,8 @@ namespace {
 
 enum class TestKind {
   kAlloc,
+  kAlloc2,
+  kStst,
   kEvict,
   kVisibility,
 };
@@ -32,17 +36,14 @@ enum class TestKind {
 static void print_usage(const char* argv0) {
   std::fprintf(stderr,
                "Usage:\n"
-               "  %s --test <alloc|evict|vis> --store <default|wb|wt|cg|cs> [options]\n"
+               "  %s --test <alloc|alloc2|stst|evict|vis> --store <default|wb|wt|cg|cs> [options]\n"
                "\n"
                "Common options:\n"
-               "  --iters N            (alloc/evict) unique lines touched (default: 262144)\n"
-               "  --stride_bytes B     (alloc/evict) bytes between lines (default: 128)\n"
+               "  --iters N            (alloc/alloc2/stst/evict) unique lines touched (default: 1)\n"
+               "  --stride_bytes B     (alloc/alloc2/stst/evict) bytes between lines (default: 128)\n"
                "  --info               print device info\n"
                "\n"
-               "Visibility (vis) options:\n"
-               "  --evict_bytes B      bytes to thrash L1 (default: 1048576)\n"
-               "  --evict_stride_bytes bytes between thrash lines (default: 128)\n"
-               "  --polls N            ld.cg polls per phase (default: 1024)\n"
+               "Visibility (vis) / stst options:\n"
                "  --delay_cycles N     producer delay after store (default: 10000)\n",
                argv0);
 }
@@ -95,6 +96,14 @@ static bool parse_test_kind(const std::string& s, TestKind* out) {
     *out = TestKind::kAlloc;
     return true;
   }
+  if (s == "alloc2") {
+    *out = TestKind::kAlloc2;
+    return true;
+  }
+  if (s == "stst") {
+    *out = TestKind::kStst;
+    return true;
+  }
   if (s == "evict") {
     *out = TestKind::kEvict;
     return true;
@@ -125,11 +134,8 @@ static void print_device_info() {
 struct Options {
   TestKind test = TestKind::kAlloc;
   StoreOp store = StoreOp::kDefault;
-  int iters = 262144;          // 262144 * 128B = 32MiB
+  int iters = 1;          // 1 * 128B = 128B (smoke test)
   int stride_bytes = 128;
-  int evict_bytes = 1 << 20;   // 1MiB
-  int evict_stride_bytes = 128;
-  int polls = 1024;
   uint64_t delay_cycles = 10000;
   bool info = false;
 };
@@ -177,28 +183,6 @@ int main(int argc, char** argv) {
       }
       continue;
     }
-    if (a == "--evict_bytes" && i + 1 < argc) {
-      if (!parse_i32(argv[++i], &opt.evict_bytes) || opt.evict_bytes <= 0) {
-        std::fprintf(stderr, "bad --evict_bytes: %s\n", argv[i]);
-        return 2;
-      }
-      continue;
-    }
-    if (a == "--evict_stride_bytes" && i + 1 < argc) {
-      if (!parse_i32(argv[++i], &opt.evict_stride_bytes) ||
-          opt.evict_stride_bytes <= 0) {
-        std::fprintf(stderr, "bad --evict_stride_bytes: %s\n", argv[i]);
-        return 2;
-      }
-      continue;
-    }
-    if (a == "--polls" && i + 1 < argc) {
-      if (!parse_i32(argv[++i], &opt.polls) || opt.polls <= 0) {
-        std::fprintf(stderr, "bad --polls: %s\n", argv[i]);
-        return 2;
-      }
-      continue;
-    }
     if (a == "--delay_cycles" && i + 1 < argc) {
       if (!parse_u64(argv[++i], &opt.delay_cycles)) {
         std::fprintf(stderr, "bad --delay_cycles: %s\n", argv[i]);
@@ -220,14 +204,10 @@ int main(int argc, char** argv) {
     std::fprintf(stderr, "--stride_bytes must be >=4 and multiple of 4\n");
     return 2;
   }
-  if ((opt.evict_stride_bytes % 4) != 0 || opt.evict_stride_bytes < 4) {
-    std::fprintf(stderr, "--evict_stride_bytes must be >=4 and multiple of 4\n");
-    return 2;
-  }
-
-  if (opt.test == TestKind::kAlloc || opt.test == TestKind::kEvict) {
+  if (opt.test == TestKind::kAlloc || opt.test == TestKind::kAlloc2 ||
+      opt.test == TestKind::kStst || opt.test == TestKind::kEvict) {
     int stride_words = opt.stride_bytes / 4;
-    size_t buf_bytes = (size_t)opt.iters * (size_t)opt.stride_bytes;
+    size_t buf_bytes = (size_t)opt.iters * (size_t)opt.stride_bytes + sizeof(uint32_t);
 
     uint32_t* d_buf = nullptr;
     uint32_t* d_out = nullptr;
@@ -247,6 +227,23 @@ int main(int argc, char** argv) {
         case StoreOp::kCg: k_alloc_cg<<<grid, block>>>(d_buf, opt.iters, stride_words, d_out); break;
         case StoreOp::kCs: k_alloc_cs<<<grid, block>>>(d_buf, opt.iters, stride_words, d_out); break;
       }
+    } else if (opt.test == TestKind::kAlloc2) {
+      block = dim3(2);
+      switch (opt.store) {
+        case StoreOp::kDefault: k_alloc2_default<<<grid, block>>>(d_buf, opt.iters, stride_words, d_out); break;
+        case StoreOp::kWb: k_alloc2_wb<<<grid, block>>>(d_buf, opt.iters, stride_words, d_out); break;
+        case StoreOp::kWt: k_alloc2_wt<<<grid, block>>>(d_buf, opt.iters, stride_words, d_out); break;
+        case StoreOp::kCg: k_alloc2_cg<<<grid, block>>>(d_buf, opt.iters, stride_words, d_out); break;
+        case StoreOp::kCs: k_alloc2_cs<<<grid, block>>>(d_buf, opt.iters, stride_words, d_out); break;
+      }
+    } else if (opt.test == TestKind::kStst) {
+      switch (opt.store) {
+        case StoreOp::kDefault: k_stst_default<<<grid, block>>>(d_buf, opt.iters, stride_words, opt.delay_cycles, d_out); break;
+        case StoreOp::kWb: k_stst_wb<<<grid, block>>>(d_buf, opt.iters, stride_words, opt.delay_cycles, d_out); break;
+        case StoreOp::kWt: k_stst_wt<<<grid, block>>>(d_buf, opt.iters, stride_words, opt.delay_cycles, d_out); break;
+        case StoreOp::kCg: k_stst_cg<<<grid, block>>>(d_buf, opt.iters, stride_words, opt.delay_cycles, d_out); break;
+        case StoreOp::kCs: k_stst_cs<<<grid, block>>>(d_buf, opt.iters, stride_words, opt.delay_cycles, d_out); break;
+      }
     } else {
       switch (opt.store) {
         case StoreOp::kDefault: k_evict_default<<<grid, block>>>(d_buf, opt.iters, stride_words, d_out); break;
@@ -260,9 +257,13 @@ int main(int argc, char** argv) {
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaDeviceSynchronize());
 
-    uint32_t out = 0;
-    CUDA_CHECK(cudaMemcpy(&out, d_out, sizeof(uint32_t), cudaMemcpyDeviceToHost));
-    std::printf("ok: out=%u (ignore; use Nsight for hit-rate)\n", out);
+    if (opt.test == TestKind::kAlloc2) {
+      std::printf("alloc2: done (mismatch not reported)\n");
+    } else {
+      uint32_t out = 0;
+      CUDA_CHECK(cudaMemcpy(&out, d_out, sizeof(uint32_t), cudaMemcpyDeviceToHost));
+      std::printf("ok: out=%u (ignore; use Nsight for hit-rate)\n", out);
+    }
 
     CUDA_CHECK(cudaFree(d_out));
     CUDA_CHECK(cudaFree(d_buf));
@@ -274,26 +275,19 @@ int main(int argc, char** argv) {
     uint32_t* d_flags = nullptr;
     uint32_t* d_results = nullptr;
     uint32_t* d_smids = nullptr;
-    uint32_t* d_evict = nullptr;
 
     CUDA_CHECK(cudaMalloc(&d_data, sizeof(uint32_t)));
-    CUDA_CHECK(cudaMalloc(&d_flags, 3 * sizeof(uint32_t)));
-    CUDA_CHECK(cudaMalloc(&d_results, 8 * sizeof(uint32_t)));
+    CUDA_CHECK(cudaMalloc(&d_flags, 2 * sizeof(uint32_t)));
+    CUDA_CHECK(cudaMalloc(&d_results, 2 * sizeof(uint32_t)));
     CUDA_CHECK(cudaMalloc(&d_smids, 2 * sizeof(uint32_t)));
-    CUDA_CHECK(cudaMalloc(&d_evict, (size_t)opt.evict_bytes));
 
     uint32_t init = 0x12345678u;
     CUDA_CHECK(cudaMemcpy(d_data, &init, sizeof(uint32_t), cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemset(d_flags, 0, 3 * sizeof(uint32_t)));
-    CUDA_CHECK(cudaMemset(d_results, 0, 8 * sizeof(uint32_t)));
+    CUDA_CHECK(cudaMemset(d_flags, 0, 2 * sizeof(uint32_t)));
+    CUDA_CHECK(cudaMemset(d_results, 0, 2 * sizeof(uint32_t)));
     CUDA_CHECK(cudaMemset(d_smids, 0, 2 * sizeof(uint32_t)));
-    CUDA_CHECK(cudaMemset(d_evict, 0, (size_t)opt.evict_bytes));
 
     uint32_t new_value = 0xdeadbeefu;
-    int evict_words = opt.evict_bytes / 4;
-    int evict_stride_words = opt.evict_stride_bytes / 4;
-    if (evict_words <= 0) evict_words = 1;
-    if (evict_stride_words <= 0) evict_stride_words = 1;
 
     dim3 grid(2);
     dim3 block(1);
@@ -301,27 +295,22 @@ int main(int argc, char** argv) {
     switch (opt.store) {
       case StoreOp::kDefault:
         k_visibility_default<<<grid, block>>>(d_data, new_value, d_flags, d_results, d_smids,
-                                             d_evict, evict_words, evict_stride_words, opt.polls,
                                              opt.delay_cycles);
         break;
       case StoreOp::kWb:
         k_visibility_wb<<<grid, block>>>(d_data, new_value, d_flags, d_results, d_smids,
-                                        d_evict, evict_words, evict_stride_words, opt.polls,
                                         opt.delay_cycles);
         break;
       case StoreOp::kWt:
         k_visibility_wt<<<grid, block>>>(d_data, new_value, d_flags, d_results, d_smids,
-                                        d_evict, evict_words, evict_stride_words, opt.polls,
                                         opt.delay_cycles);
         break;
       case StoreOp::kCg:
         k_visibility_cg<<<grid, block>>>(d_data, new_value, d_flags, d_results, d_smids,
-                                        d_evict, evict_words, evict_stride_words, opt.polls,
                                         opt.delay_cycles);
         break;
       case StoreOp::kCs:
         k_visibility_cs<<<grid, block>>>(d_data, new_value, d_flags, d_results, d_smids,
-                                        d_evict, evict_words, evict_stride_words, opt.polls,
                                         opt.delay_cycles);
         break;
     }
@@ -330,19 +319,18 @@ int main(int argc, char** argv) {
     CUDA_CHECK(cudaDeviceSynchronize());
 
     uint32_t smids[2]{};
-    uint32_t results[8]{};
+    uint32_t results[2]{};
     CUDA_CHECK(cudaMemcpy(smids, d_smids, sizeof(smids), cudaMemcpyDeviceToHost));
     CUDA_CHECK(cudaMemcpy(results, d_results, sizeof(results), cudaMemcpyDeviceToHost));
 
     std::printf("smid: producer=%u consumer=%u%s\n", smids[0], smids[1],
                 (smids[0] == smids[1]) ? " (WARNING: same SM; L1 may be shared)" : "");
     std::printf("data init=0x%08x new=0x%08x\n", init, new_value);
-    std::printf("before: first=0x%08x last=0x%08x seen_new=%u\n", results[0], results[1],
-                results[2]);
-    std::printf("after:  first=0x%08x last=0x%08x seen_new=%u\n", results[3], results[4],
-                results[5]);
+    std::printf("before: value=0x%08x seen_new=%u\n", results[0],
+                (results[0] == new_value) ? 1u : 0u);
+    std::printf("after:  value=0x%08x seen_new=%u\n", results[1],
+                (results[1] == new_value) ? 1u : 0u);
 
-    CUDA_CHECK(cudaFree(d_evict));
     CUDA_CHECK(cudaFree(d_smids));
     CUDA_CHECK(cudaFree(d_results));
     CUDA_CHECK(cudaFree(d_flags));
