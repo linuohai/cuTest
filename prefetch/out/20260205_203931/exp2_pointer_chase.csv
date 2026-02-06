@@ -1,0 +1,9 @@
+benchmark,variant,workset_bytes,stride_bytes,iters,blocks_x_threads,time_ns_per_iter,bandwidth_gbs,l2_hit_pct,l1_hit_pct,dram_read_sectors,stall_long_scoreboard_pct,note
+pointer_chase,lcg,1048576,0,200000,1x32,182.869,0.021874,84.17,4.72,32856,83.36,LCG permutation
+pointer_chase,lcg,4194304,0,200000,1x32,244.098,0.016387,51.55,1.03,126652,87.15,LCG permutation
+pointer_chase,lcg,16777216,0,200000,1x32,340.576,0.011745,16.83,0.22,284428,90.51,LCG permutation
+pointer_chase,lcg,67108864,0,200000,1x32,394.493,0.010140,4.28,0.04,370196,91.73,LCG permutation
+pointer_chase,lcg,268435456,0,200000,1x32,412.537,0.009696,1.02,0.01,393420,92.07,LCG permutation
+pointer_chase,lcg,1073741824,0,200000,1x32,416.626,0.009601,0.25,0.00,398920,92.15,LCG permutation
+pointer_chase,lcg,4294967296,0,200000,1x32,417.698,0.009576,0.06,0.00,403240,92.17,LCG permutation
+pointer_chase,lcg,17179869184,0,200000,1x32,417.826,0.009573,0.01,0.00,400736,92.17,LCG permutation

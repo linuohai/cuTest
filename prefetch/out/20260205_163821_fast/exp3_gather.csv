@@ -1,0 +1,13 @@
+benchmark,variant,workset_bytes,stride_bytes,blocks_x_threads,hot_frac,hot_prob,time_ns_per_iter,bandwidth_gbs,l2_hit_pct,l1_hit_pct,dram_read_sectors,stall_long_scoreboard_pct,note
+gather,baseline,262144,0,1x32,1.0,0.9,209.936,0.038107,88.60,57.10,14624,81.19,indices_len=iters
+gather,baseline,1048576,0,1x32,1.0,0.9,292.876,0.027315,77.21,45.93,38404,86.24,indices_len=iters
+gather,baseline,4194304,0,1x32,1.0,0.9,390.992,0.020461,46.33,44.18,76276,89.43,indices_len=iters
+gather,baseline,16777216,0,1x32,1.0,0.9,443.253,0.018048,23.78,43.85,97408,90.57,indices_len=iters
+gather,baseline,67108864,0,1x32,1.0,0.9,463.360,0.017265,15.96,43.77,104060,90.98,indices_len=iters
+gather,baseline,268435456,0,1x32,1.0,0.9,469.549,0.017038,8.74,43.76,105872,91.10,indices_len=iters
+gather,baseline,262144,0,1x32,0.1,0.9,127.308,0.062840,66.76,88.89,12412,68.69,indices_len=iters
+gather,baseline,1048576,0,1x32,0.1,0.9,155.279,0.051520,62.76,82.32,17456,74.29,indices_len=iters
+gather,baseline,4194304,0,1x32,0.1,0.9,261.743,0.030564,77.64,49.53,28776,84.71,indices_len=iters
+gather,baseline,16777216,0,1x32,0.1,0.9,346.370,0.023097,60.46,44.77,58436,88.18,indices_len=iters
+gather,baseline,67108864,0,1x32,0.1,0.9,423.539,0.018888,32.99,43.96,89756,90.17,indices_len=iters
+gather,baseline,268435456,0,1x32,0.1,0.9,454.767,0.017591,14.73,43.79,101564,90.79,indices_len=iters

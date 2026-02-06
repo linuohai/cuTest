@@ -1,0 +1,7 @@
+benchmark,variant,workset_bytes,stride_bytes,iters,blocks_x_threads,hot_frac,hot_prob,time_ns_per_iter,bandwidth_gbs,l2_hit_pct,l1_hit_pct,dram_read_sectors,stall_long_scoreboard_pct,note
+gather,baseline,268435456,0,1000000,1x32,1.0,0.9,460.407,0.017376,4.50,43.75,2055900,90.93,indices_len=iters
+gather,baseline,1073741824,0,1000000,1x32,1.0,0.9,469.442,0.017042,3.24,43.75,2126572,91.09,indices_len=iters
+gather,baseline,4294967296,0,1000000,1x32,1.0,0.9,471.312,0.016974,2.96,43.75,2147480,91.13,indices_len=iters
+gather,baseline,268435456,0,1000000,1x32,0.1,0.9,361.260,0.022145,23.56,43.80,1239656,88.67,indices_len=iters
+gather,baseline,1073741824,0,1000000,1x32,0.1,0.9,446.184,0.017930,6.52,43.76,1932964,90.66,indices_len=iters
+gather,baseline,4294967296,0,1000000,1x32,0.1,0.9,466.269,0.017157,3.68,43.75,2103604,91.04,indices_len=iters

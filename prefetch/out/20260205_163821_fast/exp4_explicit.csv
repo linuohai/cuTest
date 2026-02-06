@@ -1,0 +1,4 @@
+benchmark,variant,workset_bytes,stride_bytes,blocks_x_threads,time_ns_per_iter,bandwidth_gbs,l2_hit_pct,l1_hit_pct,dram_read_sectors,stall_long_scoreboard_pct,note
+explicit,baseline,67108864,128,1x32,431.493,0.009270,5.85,0.00,100104,87.73,
+explicit,prefetch_l2,67108864,128,1x32,275.223,0.014534,67.17,0.00,200136,70.53,
+explicit,cp_async,67108864,128,1x32,117.023,0.034181,0.32,0.00,100172,32.19,

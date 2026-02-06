@@ -1,0 +1,9 @@
+==PROF== Connected to process 166282 (/tmp/cutest_prefetch_run_20260205_171554/bin/prefetch_bench)
+==PROF== Disconnected from process 166282
+"ID","Process ID","Process Name","Host Name","Kernel Name","Context","Stream","Block Size","Grid Size","Device","CC","Section Name","Metric Name","Metric Unit","Metric Value"
+"0","166282","prefetch_bench","127.0.0.1","<unnamed>::stride_baseline_kernel(const int *, unsigned long, int, int, int *)","1","7","(32, 1, 1)","(1, 1, 1)","0","8.0","Command line profiler metrics","dram__sectors_read.sum","sector","16476"
+"0","166282","prefetch_bench","127.0.0.1","<unnamed>::stride_baseline_kernel(const int *, unsigned long, int, int, int *)","1","7","(32, 1, 1)","(1, 1, 1)","0","8.0","Command line profiler metrics","l1tex__t_sectors_pipe_lsu_mem_global_op_ld_lookup_hit.sum","sector","0"
+"0","166282","prefetch_bench","127.0.0.1","<unnamed>::stride_baseline_kernel(const int *, unsigned long, int, int, int *)","1","7","(32, 1, 1)","(1, 1, 1)","0","8.0","Command line profiler metrics","l1tex__t_sectors_pipe_lsu_mem_global_op_ld_lookup_miss.sum","sector","50000"
+"0","166282","prefetch_bench","127.0.0.1","<unnamed>::stride_baseline_kernel(const int *, unsigned long, int, int, int *)","1","7","(32, 1, 1)","(1, 1, 1)","0","8.0","Command line profiler metrics","lts__t_sectors_srcunit_tex_aperture_device_op_read_lookup_hit.sum","sector","41808"
+"0","166282","prefetch_bench","127.0.0.1","<unnamed>::stride_baseline_kernel(const int *, unsigned long, int, int, int *)","1","7","(32, 1, 1)","(1, 1, 1)","0","8.0","Command line profiler metrics","lts__t_sectors_srcunit_tex_aperture_device_op_read_lookup_miss.sum","sector","16384"
+"0","166282","prefetch_bench","127.0.0.1","<unnamed>::stride_baseline_kernel(const int *, unsigned long, int, int, int *)","1","7","(32, 1, 1)","(1, 1, 1)","0","8.0","Command line profiler metrics","smsp__warp_issue_stalled_long_scoreboard_per_warp_active.pct","%","77.64"

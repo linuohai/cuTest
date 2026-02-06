@@ -1,0 +1,5 @@
+benchmark,variant,workset_bytes,stride_bytes,iters,blocks_x_threads,hot_frac,hot_prob,time_ns_per_iter,bandwidth_gbs,l2_hit_pct,l1_hit_pct,dram_read_sectors,stall_long_scoreboard_pct,note
+gather,baseline,268435456,0,200000,1x32,1.0,0.9,465.918,0.017170,3.84,43.75,417844,91.03,indices_len=iters
+gather,baseline,4294967296,0,200000,1x32,1.0,0.9,471.927,0.016952,2.92,43.75,428392,91.14,indices_len=iters
+gather,baseline,268435456,0,200000,1x32,0.1,0.9,424.634,0.018840,11.51,43.79,357032,90.21,indices_len=iters
+gather,baseline,4294967296,0,200000,1x32,0.1,0.9,469.364,0.017044,3.37,43.75,421384,91.09,indices_len=iters

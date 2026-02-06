@@ -1,0 +1,14 @@
+benchmark,variant,workset_bytes,stride_bytes,blocks_x_threads,time_ns_per_iter,bandwidth_gbs,l2_hit_pct,l1_hit_pct,dram_read_sectors,stall_long_scoreboard_pct,note
+pointer_chase,baseline,65536,0,1x32,58.315,0.068593,70.54,95.90,2148,45.62,LCG permutation
+pointer_chase,baseline,131072,0,1x32,68.284,0.058579,70.23,91.81,4196,53.08,LCG permutation
+pointer_chase,baseline,262144,0,1x32,158.355,0.025260,92.14,26.05,8704,79.82,LCG permutation
+pointer_chase,baseline,524288,0,1x32,197.280,0.020276,87.66,10.37,16484,83.60,LCG permutation
+pointer_chase,baseline,1048576,0,1x32,241.345,0.016574,78.27,4.55,31724,86.37,LCG permutation
+pointer_chase,baseline,2097152,0,1x32,295.059,0.013557,62.56,2.07,52656,88.66,LCG permutation
+pointer_chase,baseline,4194304,0,1x32,341.594,0.011710,43.12,0.95,71300,90.09,LCG permutation
+pointer_chase,baseline,8388608,0,1x32,373.526,0.010709,34.43,0.43,86292,90.87,LCG permutation
+pointer_chase,baseline,16777216,0,1x32,392.028,0.010203,20.09,0.20,91656,91.28,LCG permutation
+pointer_chase,baseline,33554432,0,1x32,401.895,0.009953,12.64,0.10,95684,91.48,LCG permutation
+pointer_chase,baseline,67108864,0,1x32,411.005,0.009732,5.53,0.04,97952,91.65,LCG permutation
+pointer_chase,baseline,134217728,0,1x32,415.367,0.009630,3.61,0.01,99060,91.74,LCG permutation
+pointer_chase,baseline,268435456,0,1x32,417.485,0.009581,3.81,0.00,99704,91.78,LCG permutation

@@ -1,0 +1,5 @@
+benchmark,variant,workset_bytes,stride_bytes,blocks_x_threads,time_ns_per_iter,bandwidth_gbs,l2_hit_pct,l1_hit_pct,dram_read_sectors,stall_long_scoreboard_pct,note
+pointer_chase,baseline,262144,0,1x32,158.388,0.025254,92.21,25.90,8296,79.84,LCG permutation
+pointer_chase,baseline,4194304,0,1x32,341.692,0.011706,43.45,0.97,71300,90.08,LCG permutation
+pointer_chase,baseline,67108864,0,1x32,411.075,0.009731,5.97,0.04,97944,91.65,LCG permutation
+pointer_chase,baseline,268435456,0,1x32,417.448,0.009582,7.07,0.01,99724,91.79,LCG permutation

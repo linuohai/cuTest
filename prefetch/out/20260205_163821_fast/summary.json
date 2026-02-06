@@ -1,0 +1,18 @@
+{
+  "out_dir": "/tmp/cutest_prefetch_run_test_20260205_163821/out/20260205_163821_fast",
+  "files": [
+    "env.json",
+    "exp1_stride.csv",
+    "exp2_pointer_chase.csv",
+    "exp3_gather.csv",
+    "exp4_explicit.csv",
+    "explicit_vs_baseline.png",
+    "gather_l2hit.png",
+    "gather_latency.png",
+    "ncu",
+    "pointer_chase_latency.png",
+    "stride_l2hit.png",
+    "stride_latency.png",
+    "workingset_boundary.png"
+  ]
+}
